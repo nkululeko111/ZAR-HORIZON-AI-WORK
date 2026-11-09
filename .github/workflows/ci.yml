@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: zar_horizon
+          POSTGRES_USER: zar_horizon
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zar_horizon -d zar_horizon"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://zar_horizon:ci-only-password@localhost:5432/zar_horizon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: uv
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --all-packages --all-groups --locked
+      - run: uv run --package zar-horizon-api alembic -c apps/api/alembic.ini upgrade head
+      - run: pnpm format:check
+      - run: pnpm lint:web
+      - run: pnpm typecheck:web
+      - run: pnpm test:web
+      - run: pnpm lint:python
+      - run: pnpm format:python:check
+      - run: pnpm test:python
+      - run: pnpm build:web

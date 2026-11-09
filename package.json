@@ -1,0 +1,20 @@
+{
+  "name": "zar-horizon-ai-work",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev:web": "pnpm --filter @zar-horizon/web dev",
+    "build:web": "pnpm --filter @zar-horizon/web build",
+    "lint:web": "pnpm --filter @zar-horizon/web lint",
+    "typecheck:web": "pnpm --filter @zar-horizon/web typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:python": "uv run ruff check .",
+    "format:python:check": "uv run ruff format --check .",
+    "test:python": "uv run pytest",
+    "test:web": "pnpm --filter @zar-horizon/web test"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}

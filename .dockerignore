@@ -1,0 +1,13 @@
+.git
+.next
+.venv
+node_modules
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+*.py[cod]
+.env
+.env.*
+!.env.example
+coverage
