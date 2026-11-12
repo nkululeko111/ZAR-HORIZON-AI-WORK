@@ -144,6 +144,7 @@ class AnalysisResponse(BaseModel):
     deterministic_insights: list[InsightResponse]
     ai_insights: list[InsightResponse]
     evidence: list[EvidenceResponse]
+    model_metadata: dict[str, str | None] | None
 
 
 class BusinessActionCreate(BaseModel):
@@ -151,6 +152,14 @@ class BusinessActionCreate(BaseModel):
     insight_id: str = Field(min_length=1, max_length=120)
     title: str | None = Field(default=None, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("title", "description")
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        return cleaned or None
 
 
 class BusinessActionStatusUpdate(BaseModel):

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,9 +12,16 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     database_url: str = "postgresql+psycopg://localhost/zar_horizon"
     business_partner_local_mode: bool = False
-    ai_api_key: SecretStr | None = None
-    ai_chat_completions_url: str | None = None
-    ai_model: str | None = None
+    business_partner_ai_api_key: SecretStr | None = None
+    business_partner_ai_chat_completions_url: str | None = None
+    business_partner_ai_provider: str | None = None
+    business_partner_ai_model: str | None = None
+    business_partner_ai_model_version: str | None = None
+    business_partner_ai_model_source: str | None = None
+    business_partner_ai_model_license: str | None = None
+    business_partner_ai_model_license_type: Literal[
+        "open_source", "open_weights", "restricted", "unknown"
+    ] = "unknown"
 
     model_config = SettingsConfigDict(
         env_file=".env",

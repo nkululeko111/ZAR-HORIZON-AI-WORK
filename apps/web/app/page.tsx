@@ -101,12 +101,17 @@ export default function Home() {
               <div className="card-footer">
                 {product.href ? (
                   <a className="card-action" href={product.href}>
-                    {product.detail}<span className="arrow" aria-hidden="true">↗</span>
+                    {product.detail}
+                    <span className="arrow" aria-hidden="true">
+                      ↗
+                    </span>
                   </a>
                 ) : (
                   <>
                     <span>{product.detail}</span>
-                    <span className="arrow" aria-hidden="true">↗</span>
+                    <span className="arrow" aria-hidden="true">
+                      ↗
+                    </span>
                   </>
                 )}
               </div>

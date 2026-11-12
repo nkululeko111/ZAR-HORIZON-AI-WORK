@@ -8,7 +8,6 @@ from pydantic import SecretStr
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-
 from zar_horizon_api import models
 from zar_horizon_api.api.dependencies import get_db
 from zar_horizon_api.core.config import Settings, get_settings
@@ -21,7 +20,10 @@ from zar_horizon_api.services.business_partner import (
 )
 from zar_horizon_api.services.insight_provider import (
     OpenAICompatibleInsightProvider,
+    ProviderConfigurationError,
     ProviderResponseError,
+    create_insight_provider,
+    describe_model_configuration,
 )
 
 _ = models
@@ -120,11 +122,14 @@ def test_csv_rejects_missing_classification_and_ambiguous_amount() -> None:
     content = """date,description,amount,currency,type
 2025-01-01,Unknown type,10.00,ZAR,
 2025-01-02,Ambiguous amount,1,234,ZAR,revenue
+2025-01-03,Out of range amount,10000000000000000.00,ZAR,revenue
 """
     _, rows = parse_financial_csv(content, "dot")
     assert rows[0].status == "invalid"
     assert any("not inferred" in error for error in rows[0].errors)
     assert rows[1].status == "invalid"
+    assert rows[2].status == "invalid"
+    assert any("limit" in error for error in rows[2].errors)
     with pytest.raises(CSVFormatError, match="missing required columns"):
         parse_financial_csv("date,amount\n2025-01-01,3", "dot")
 
@@ -226,11 +231,7 @@ def test_ai_provider_requires_citations_to_known_evidence() -> None:
         assert request.headers["authorization"] == "Bearer test-key"
         return httpx.Response(
             200,
-            json={
-                "choices": [
-                    {"message": {"content": json.dumps(generated_content)}}
-                ]
-            },
+            json={"choices": [{"message": {"content": json.dumps(generated_content)}}]},
         )
 
     provider = OpenAICompatibleInsightProvider(
@@ -255,3 +256,79 @@ def test_ai_provider_requires_citations_to_known_evidence() -> None:
             deterministic_insights=[],
             evidence_ids={"revenue:ZAR"},
         )
+
+
+def test_local_model_configuration_is_provider_independent_and_records_license_metadata() -> None:
+    settings = Settings(
+        app_env="test",
+        business_partner_ai_chat_completions_url=(
+            "http://localhost:11434/v1/chat/completions?access_token=not-stored"
+        ),
+        business_partner_ai_provider="Local inference",
+        business_partner_ai_model="community-finance-model",
+        business_partner_ai_model_version="2026-01",
+        business_partner_ai_model_source="https://models.example/community-finance-model",
+        business_partner_ai_model_license="Example Model License",
+        business_partner_ai_model_license_type="open_weights",
+    )
+    assert create_insight_provider(settings) is not None
+    metadata = describe_model_configuration(settings)
+    assert metadata == {
+        "provider": "Local inference",
+        "model": "community-finance-model",
+        "version": "2026-01",
+        "source": "https://models.example/community-finance-model",
+        "license": "Example Model License",
+        "license_type": "open_weights",
+        "endpoint": "http://localhost:11434/v1/chat/completions",
+    }
+
+    with pytest.raises(ProviderConfigurationError, match="API key"):
+        create_insight_provider(
+            Settings(
+                app_env="test",
+                business_partner_ai_chat_completions_url=(
+                    "https://inference.example/v1/chat/completions"
+                ),
+                business_partner_ai_model="external-model",
+            )
+        )
+
+
+def test_local_inference_does_not_require_or_send_an_api_key() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "authorization" not in request.headers
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "content": json.dumps(
+                                {
+                                    "summary": "The validated records show a positive result.",
+                                    "summary_evidence_ids": ["net_profit:ZAR"],
+                                    "answer": None,
+                                    "answer_evidence_ids": [],
+                                    "insights": [],
+                                }
+                            )
+                        }
+                    }
+                ]
+            },
+        )
+
+    provider = OpenAICompatibleInsightProvider(
+        api_key=None,
+        chat_completions_url="http://localhost:11434/v1/chat/completions",
+        model="local-model",
+        transport=httpx.MockTransport(handler),
+    )
+    result = provider.analyse(
+        question=None,
+        summary={"transaction_count": 1},
+        deterministic_insights=[],
+        evidence_ids={"net_profit:ZAR"},
+    )
+    assert result.summary_evidence_ids == ["net_profit:ZAR"]

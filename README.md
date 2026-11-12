@@ -1,8 +1,10 @@
 # ZAR HORIZON AI @WORK
 
 ZAR HORIZON AI @WORK is the technology division of ZAR HORIZON (Pty) Ltd, building purpose-specific
-AI digital employees. This repository establishes the shared platform and independent product
-boundaries; it does not yet implement agent intelligence, tool execution, payments, or billing.
+AI digital employees. This repository establishes the shared platform and independent product boundaries. The first
+Business Partner workflow supports local business profiles, classified CSV imports, deterministic
+financial summaries, evidence-linked insights and internal action tracking. It does not execute
+external business actions or implement Hacker testing capabilities, payments, or billing.
 
 ## Products
 
@@ -26,7 +28,7 @@ The two products have independent service and configuration boundaries. Read the
 ```text
 apps/
   api/                    FastAPI application and Alembic migrations
-  web/                    Next.js landing page
+  web/                    Next.js landing page and Business Partner workspace
 agents/
   business-partner/       Isolated Business Partner service scaffold
   hacker/                 Isolated Hacker service scaffold
@@ -101,6 +103,19 @@ The web app is at <http://localhost:3000>. The API health check is at
 <http://localhost:8000/health>, version information is at
 <http://localhost:8000/api/v1/version>, and interactive API documentation is at
 <http://localhost:8000/docs>.
+
+The Business Partner workspace is at <http://localhost:3000/business-partner>. It is a
+development-only, single local workspace without authentication. Use synthetic or non-sensitive
+data only. Its AI layer uses a configurable OpenAI-compatible endpoint; configure
+`BUSINESS_PARTNER_AI_CHAT_COMPLETIONS_URL` and `BUSINESS_PARTNER_AI_MODEL`. A key is required for
+remote endpoints, but not for local HTTP inference endpoints. Model name, version, source, licence
+and licence category are configurable and recorded with analysis when supplied. Licence categories
+distinguish `open_source`, `open_weights`, `restricted` and `unknown`; confirm model-specific
+commercial terms independently. The model strategy is open-source/open-weight-first and
+provider-independent: evaluate each model's actual capabilities, licence and privacy requirements
+instead of selecting by developer size or benchmark claims. AI Hacker will retain its own model
+selection and controlled security-task evaluation configuration; this sprint does not select or
+evaluate a Hacker model.
 
 Run the complete local stack with `docker compose up --build`. Stop it with
 `docker compose down`; add `-v` only when intentionally deleting the local PostgreSQL data volume.

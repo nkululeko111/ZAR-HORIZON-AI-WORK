@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import UTC, datetime
+from typing import Annotated
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -51,6 +52,7 @@ from zar_horizon_api.services.insight_provider import (
     ProviderResponseError,
     ProviderUnavailable,
     create_insight_provider,
+    describe_model_configuration,
 )
 
 logger = logging.getLogger(__name__)
@@ -74,9 +76,7 @@ def _require_profile(db: Session, context: BusinessPartnerContext) -> BusinessPr
     return profile
 
 
-def _record_audit_event(
-    db: Session, context: BusinessPartnerContext, action: str
-) -> None:
+def _record_audit_event(db: Session, context: BusinessPartnerContext, action: str) -> None:
     db.add(
         AuditEvent(
             organization_id=context.organization_id,
@@ -198,8 +198,8 @@ def _financial_summary(db: Session, context: BusinessPartnerContext) -> Financia
 
 @router.get("/profile", response_model=BusinessProfileResponse)
 def get_business_profile(
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> BusinessProfile:
     profile = db.scalar(_profile_query(context))
     if profile is None:
@@ -214,8 +214,8 @@ def get_business_profile(
 )
 def save_business_profile(
     payload: BusinessProfileUpsert,
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> BusinessProfile:
     profile = db.scalar(_profile_query(context))
     if profile is None:
@@ -240,8 +240,8 @@ def save_business_profile(
 @router.post("/financial/import/preview", response_model=CsvPreviewResponse)
 def preview_financial_import(
     payload: CsvPreviewRequest,
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> CsvPreviewResponse:
     preview, _, _ = _prepare_preview(db, context, payload)
     return preview
@@ -250,12 +250,15 @@ def preview_financial_import(
 @router.post("/financial/import", response_model=CsvImportResponse)
 def import_financial_csv(
     payload: CsvPreviewRequest,
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> CsvImportResponse:
     preview, rows, content_hash = _prepare_preview(db, context, payload)
     if preview.file_duplicate:
-        raise HTTPException(status_code=409, detail="This exact CSV file has already been imported.")
+        raise HTTPException(
+            status_code=409,
+            detail="This exact CSV file has already been imported.",
+        )
 
     valid_rows = [row for row in rows if row.status == "valid"]
     if not valid_rows:
@@ -331,8 +334,8 @@ def import_financial_csv(
 
 @router.get("/financial/summary", response_model=FinancialSummaryResponse)
 def get_financial_summary(
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> FinancialSummaryResponse:
     _require_profile(db, context)
     return _financial_summary(db, context)
@@ -341,9 +344,9 @@ def get_financial_summary(
 @router.post("/analysis", response_model=AnalysisResponse)
 def analyse_business_performance(
     payload: AnalysisRequest,
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> AnalysisResponse:
     profile = _require_profile(db, context)
     financial_summary = _financial_summary(db, context)
@@ -353,11 +356,13 @@ def analyse_business_performance(
     answer: str | None = None
     answer_evidence_ids: list[str] = []
     summary_evidence_ids: list[str] = []
+    model_metadata: dict[str, str | None] | None = None
     if financial_summary.transaction_count == 0:
         ai_status = "not_available"
         ai_message = "No validated financial records are available. Import records before analysis."
         summary_text = "There are no validated financial transactions to analyse."
     else:
+        model_metadata = describe_model_configuration(settings)
         try:
             provider = create_insight_provider(settings)
         except ProviderConfigurationError as exc:
@@ -395,7 +400,9 @@ def analyse_business_performance(
                     detail="AI provider returned an unusable response. No AI insight was saved.",
                 ) from exc
             ai_status = "available"
-            ai_message = "AI analysis is grounded in the validated summary and cited evidence shown."
+            ai_message = (
+                "AI analysis is grounded in the validated summary and cited evidence shown."
+            )
             summary_text = generated.summary
             summary_evidence_ids = generated.summary_evidence_ids
             answer = generated.answer
@@ -412,6 +419,7 @@ def analyse_business_performance(
         "answer_evidence_ids": answer_evidence_ids,
         "deterministic_insights": deterministic_insights,
         "ai_insights": ai_insights,
+        "model_metadata": model_metadata,
     }
     evidence_json = [
         EvidenceResponse.model_validate(item).model_dump(mode="json") for item in evidence
@@ -425,6 +433,7 @@ def analyse_business_performance(
         ai_status=ai_status,
         analysis_data=analysis_data,
         evidence_data=evidence_json,
+        model_metadata=model_metadata,
     )
     db.add(analysis)
     _record_audit_event(db, context, "business_analysis.created")
@@ -442,13 +451,14 @@ def analyse_business_performance(
         ],
         ai_insights=[InsightResponse.model_validate(item) for item in ai_insights],
         evidence=[EvidenceResponse.model_validate(item) for item in evidence_json],
+        model_metadata=model_metadata,
     )
 
 
 @router.get("/actions", response_model=list[BusinessActionResponse])
 def list_business_actions(
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> list[BusinessAction]:
     return list(
         db.scalars(
@@ -469,8 +479,8 @@ def list_business_actions(
 )
 def create_business_action(
     payload: BusinessActionCreate,
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> BusinessAction:
     analysis = db.scalar(
         select(BusinessAnalysis).where(
@@ -500,9 +510,7 @@ def create_business_action(
     evidence_by_id = {item["id"]: item for item in analysis.evidence_data}
     evidence_ids = insight.get("evidence_ids", [])
     supporting_evidence = [
-        evidence_by_id[evidence_id]
-        for evidence_id in evidence_ids
-        if evidence_id in evidence_by_id
+        evidence_by_id[evidence_id] for evidence_id in evidence_ids if evidence_id in evidence_by_id
     ]
     if not supporting_evidence:
         raise HTTPException(
@@ -535,8 +543,8 @@ def create_business_action(
 def update_business_action(
     action_id: UUID,
     payload: BusinessActionStatusUpdate,
-    context: BusinessPartnerContext = Depends(get_business_partner_context),
-    db: Session = Depends(get_db),
+    context: Annotated[BusinessPartnerContext, Depends(get_business_partner_context)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> BusinessAction:
     action = db.scalar(
         select(BusinessAction).where(

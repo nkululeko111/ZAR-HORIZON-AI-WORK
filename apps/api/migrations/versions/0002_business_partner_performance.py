@@ -152,7 +152,13 @@ def upgrade() -> None:
             name="uq_business_financial_transactions_workspace_fingerprint",
         ),
     )
-    for column in ("organization_id", "workspace_id", "business_profile_id", "import_id", "transaction_date"):
+    for column in (
+        "organization_id",
+        "workspace_id",
+        "business_profile_id",
+        "import_id",
+        "transaction_date",
+    ):
         op.create_index(
             op.f(f"ix_business_financial_transactions_{column}"),
             "business_financial_transactions",
@@ -169,6 +175,7 @@ def upgrade() -> None:
         sa.Column("ai_status", sa.String(length=30), nullable=False),
         sa.Column("analysis_data", sa.JSON(), nullable=False),
         sa.Column("evidence_data", sa.JSON(), nullable=False),
+        sa.Column("model_metadata", sa.JSON(), nullable=True),
         sa.Column(
             "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
         ),
@@ -254,9 +261,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_business_actions")),
     )
     for column in ("organization_id", "workspace_id", "analysis_id"):
-        op.create_index(
-            op.f(f"ix_business_actions_{column}"), "business_actions", [column]
-        )
+        op.create_index(op.f(f"ix_business_actions_{column}"), "business_actions", [column])
 
 
 def downgrade() -> None:

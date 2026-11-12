@@ -3,11 +3,11 @@ import hashlib
 import io
 import re
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from datetime import date
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-from typing import Iterable, Protocol
-
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from typing import Protocol
 
 CENT = Decimal("0.01")
 MAX_CSV_ROWS = 10_000
@@ -100,6 +100,8 @@ def _parse_amount(value: str, decimal_format: str, currency: str) -> Decimal:
         raise ValueError("Amount must be finite.")
     if amount == 0:
         raise ValueError("Amount must not be zero.")
+    if amount.copy_abs() >= Decimal("10000000000000000"):
+        raise ValueError("Amount exceeds the supported 16-digit whole-unit limit.")
     return amount.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
@@ -163,9 +165,7 @@ def parse_financial_csv(csv_text: str, decimal_format: str) -> tuple[str, list[P
 
         missing = sorted(REQUIRED_FIELDS - field_names.keys())
         if missing:
-            raise CSVFormatError(
-                "CSV is missing required columns: " + ", ".join(missing) + "."
-            )
+            raise CSVFormatError("CSV is missing required columns: " + ", ".join(missing) + ".")
 
         rows: list[ParsedTransaction] = []
         seen_fingerprints: set[str] = set()
@@ -191,9 +191,9 @@ def parse_financial_csv(csv_text: str, decimal_format: str) -> tuple[str, list[P
                 )
                 continue
 
-            def value(field: str) -> str:
+            def value(field: str, row: dict[str | None, str | None] = raw) -> str:
                 column = field_names.get(field)
-                return (raw.get(column) or "").strip() if column else ""
+                return (row.get(column) or "").strip() if column else ""
 
             errors: list[str] = []
             parsed_date: date | None = None
@@ -246,7 +246,14 @@ def parse_financial_csv(csv_text: str, decimal_format: str) -> tuple[str, list[P
                     errors.append(str(exc))
 
             fingerprint = None
-            if not errors and parsed_date and description and transaction_type and currency and amount:
+            if (
+                not errors
+                and parsed_date
+                and description
+                and transaction_type
+                and currency
+                and amount
+            ):
                 fingerprint = _fingerprint(
                     parsed_date,
                     description,
@@ -317,13 +324,19 @@ def summarize_transactions(transactions: Iterable[TransactionLike]) -> dict[str,
     for currency in sorted(grouped):
         items = grouped[currency]
         revenue = sum(
-            (Decimal(transaction.amount) for transaction in items
-             if transaction.transaction_type == "revenue"),
+            (
+                Decimal(transaction.amount)
+                for transaction in items
+                if transaction.transaction_type == "revenue"
+            ),
             start=Decimal("0.00"),
         )
         expenses = sum(
-            (Decimal(transaction.amount) for transaction in items
-             if transaction.transaction_type == "expense"),
+            (
+                Decimal(transaction.amount)
+                for transaction in items
+                if transaction.transaction_type == "expense"
+            ),
             start=Decimal("0.00"),
         )
         net_profit = revenue - expenses
@@ -382,9 +395,7 @@ def summarize_transactions(transactions: Iterable[TransactionLike]) -> dict[str,
             category_totals.items(), key=lambda item: (-item[1], item[0].casefold())
         ):
             share = (
-                (category_amount * Decimal("100") / expenses).quantize(
-                    CENT, rounding=ROUND_HALF_UP
-                )
+                (category_amount * Decimal("100") / expenses).quantize(CENT, rounding=ROUND_HALF_UP)
                 if expenses > 0
                 else None
             )
@@ -483,9 +494,8 @@ def build_evidence_and_insights(
             for metric, label in (("revenue", "Revenue"), ("expenses", "Expenses")):
                 before = Decimal(previous[metric])
                 after = Decimal(current[metric])
-                is_material_direction = (
-                    (metric == "revenue" and after < before)
-                    or (metric == "expenses" and after > before)
+                is_material_direction = (metric == "revenue" and after < before) or (
+                    metric == "expenses" and after > before
                 )
                 if is_material_direction:
                     before_id = f"{metric}:{currency}:{previous_period}"
@@ -511,7 +521,11 @@ def build_evidence_and_insights(
                     insights.append(
                         {
                             "id": f"{metric}_trend:{currency}:{current_period}",
-                            "title": f"{label} decreased" if metric == "revenue" else f"{label} increased",
+                            "title": (
+                                f"{label} decreased"
+                                if metric == "revenue"
+                                else f"{label} increased"
+                            ),
                             "description": (
                                 f"Imported {label.lower()} moved in this direction from "
                                 f"{previous_period} to {current_period}. This describes the "

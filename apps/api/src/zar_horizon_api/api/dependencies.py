@@ -1,5 +1,6 @@
+from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Generator
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
@@ -29,8 +30,8 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def get_business_partner_context(
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> BusinessPartnerContext:
     if not settings.business_partner_local_mode or settings.app_env.lower() not in {
         "development",

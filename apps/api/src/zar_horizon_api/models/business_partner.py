@@ -3,12 +3,12 @@ from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
     Date,
     DateTime,
     ForeignKeyConstraint,
     Integer,
-    JSON,
     Numeric,
     String,
     UniqueConstraint,
@@ -23,9 +23,7 @@ from zar_horizon_api.database.base import Base
 class BusinessProfile(Base):
     __tablename__ = "business_profiles"
     __table_args__ = (
-        UniqueConstraint(
-            "organization_id", "workspace_id", name="uq_business_profiles_workspace"
-        ),
+        UniqueConstraint("organization_id", "workspace_id", name="uq_business_profiles_workspace"),
         UniqueConstraint(
             "organization_id",
             "workspace_id",
@@ -95,7 +93,12 @@ class FinancialTransaction(Base):
         CheckConstraint(
             "transaction_type IN ('revenue', 'expense')", name="valid_transaction_type"
         ),
-        UniqueConstraint("organization_id", "workspace_id", "fingerprint"),
+        UniqueConstraint(
+            "organization_id",
+            "workspace_id",
+            "fingerprint",
+            name="uq_business_financial_transactions_workspace_fingerprint",
+        ),
         ForeignKeyConstraint(
             ["organization_id", "workspace_id"],
             ["workspaces.organization_id", "workspaces.id"],
@@ -168,6 +171,7 @@ class BusinessAnalysis(Base):
     ai_status: Mapped[str] = mapped_column(String(30), nullable=False)
     analysis_data: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
     evidence_data: Mapped[list[dict[str, object]]] = mapped_column(JSON, nullable=False)
+    model_metadata: Mapped[dict[str, str | None] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
