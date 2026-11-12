@@ -1,0 +1,13 @@
+---
+description: Frontend implementation rules
+globs: ["apps/web/**/*.{ts,tsx,css}", "packages/**/*.{ts,tsx}"]
+---
+
+# Frontend rules
+
+- Preserve the existing Next.js, React, TypeScript, and Tailwind structure in `apps/web`.
+- Treat the frontend as the presentation layer, not the enforcement boundary.
+- Keep UI changes aligned with `docs/ux/`, `docs/products/`, and `docs/architecture/`.
+- Do not create pages, flows, or components outside the approved design scope.
+- Do not rely on frontend-only checks for security, permissions, approvals, or tenant boundaries.
+- Prefer the repository’s existing patterns and avoid adding dependencies without a clear need.

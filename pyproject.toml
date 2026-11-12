@@ -2,7 +2,7 @@
 name = "zar-horizon-ai-workspace"
 version = "0.1.0"
 description = "Python tooling and shared development configuration for ZAR HORIZON AI @WORK"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12"
 dependencies = []
 
 [dependency-groups]

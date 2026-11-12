@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-zar_horizon}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,9 +21,10 @@ services:
       dockerfile: apps/api/Dockerfile
     environment:
       APP_ENV: development
+      BUSINESS_PARTNER_LOCAL_MODE: "true"
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-zar_horizon}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-zar_horizon}
     ports:
-      - '8000:8000'
+      - '127.0.0.1:8000:8000'
     depends_on:
       db:
         condition: service_healthy
@@ -38,7 +39,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     depends_on:
       - api
 

@@ -1,0 +1,22 @@
+# Founder MVP decision register
+
+## Purpose
+
+This register captures the strategic decisions that still require founder review before implementation planning can become product commitment.
+
+## Decision register
+
+| Decision | Available options | Advantages | Disadvantages | Dependencies | Risks | Recommended direction | Evidence still needed | Approval status |
+|---|---|---|---|---|---|---|---|---|
+| Business Partner initial focus | Business performance agent; sales and supplier operations; broader business lifecycle | Business performance workflow is immediately useful and data-accessible; sales/supplier workflow is value-rich for certain sectors | Broad lifecycle is harder to deliver and may dilute the MVP | Customer segment choice, product team strategy | Wrong segment focus can reduce early adoption | Recommend business performance and action agent as primary MVP | Real customer interviews and pilot feedback | Pending founder approval |
+| AI Hacker initial focus | Web/API security assessment; infrastructure review; cloud review; broader attack surface monitoring | Web/API is highly relevant, bounded and highly valuable; infrastructure/cloud is broader and more complex | Broad coverage is harder to govern and validate | Customer types, risk appetite, operating model | Wrong scope can create trust or safety issues | Recommend web/API assessment as primary MVP | Customer validation on target segment and trust expectations | Pending founder approval |
+| Product delivery model | self-service SaaS; project-based service; hybrid | Self-service scales; project-based supports trust and compliance; hybrid balances both | Hybrid adds complexity; pure self-service may be too risky for AI Hacker | Market segmentation, implementation capacity | Wrong model can cause poor fit or high support burden | Recommend a hybrid model only after core MVP validation | Customer readiness and expected support burden | Pending founder approval |
+| Target customer segment | SMEs; SaaS and digital businesses; MSPs; sector-specific segments | SMEs offer volume; SaaS offers higher technical fit; MSPs offer recurring service potential | Each segment has different expectations and operational maturity | Sales strategy, support model, implementation capacity | Targeting the wrong segment reduces adoption | Recommend a narrow initial focus with clear validation plan | Customer discovery and pilot testing | Pending founder approval |
+| South African localisation strategy | strong local positioning; global SaaS positioning; local + international hybrid | Local positioning is valuable in South Africa and Africa; global positioning brings scale | Localised positioning can increase support and localisation complexity | Market research, compliance and operations | A mismatch between positioning and customer needs | Recommend local relevance with tight product focus | Customer validation on channel and buyers | Pending founder approval |
+| Business Partner approval model | fully autonomous; supervised; approval-gated actions | Approval-gated actions are safer; fully autonomous is simpler for users | Fully autonomous may create risk and reduce trust | Data sensitivity, customer preferences | Over-autonomy can lead to business errors | Recommend approval-gated actions for external or sensitive workflows | Customer comfort and policy preferences | Pending founder approval |
+| AI Hacker approval model | human-in-the-loop for all findings; select human approvals; minimal review | Human review improves quality and trust | More review slows delivery and increases overhead | Security risk tolerance, staffing model | Under-review models reduce trust or quality | Recommend explicit approval for high-risk validations and retests | Customer preferences and governance | Pending founder approval |
+| MVP scope breadth | narrow MVP; broad “all-in-one” MVP | Narrow scope improves feasibility and quality | Broad scope is more compelling but riskier and slower | Delivery team, platform constraints | Broad scope may fail due to complexity | Recommend narrow, complete workflows over broad shallow capability | Customer validation on real workflow adoption | Pending founder approval |
+
+## Founder-approved decision status
+
+The following are not to be treated as approved: all recommendations in this register are preliminary and must be confirmed by the founder before they become formal product commitments.

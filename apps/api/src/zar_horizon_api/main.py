@@ -2,8 +2,9 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from zar_horizon_api.api.routes import health, version
+from zar_horizon_api.api.routes import business_partner, health, version
 from zar_horizon_api.core.config import get_settings
 from zar_horizon_api.core.logging import configure_logging
 
@@ -25,5 +26,13 @@ app = FastAPI(
     description="Shared platform API foundation.",
     lifespan=lifespan,
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 app.include_router(health.router)
 app.include_router(version.router)
+app.include_router(business_partner.router)

@@ -1,0 +1,14 @@
+---
+description: Testing, verification, and security rules
+globs: ["apps/**/*.ts", "apps/**/*.tsx", "apps/**/*.py", "tests/**/*.py", "tests/**/*.ts", ".github/workflows/**/*.yml"]
+---
+
+# Testing and security rules
+
+- Validate only the checks that are actually available and runnable.
+- For frontend work, prefer formatting, linting, type checking, and tests where those commands exist.
+- For backend work, prefer Python linting, testing, and relevant migration checks if available.
+- For approval, tenant-boundary, or agent-scope changes, validate the permission model and evidence trail instead of assuming the logic is safe.
+- Never weaken security controls to satisfy tests or a convenience requirement.
+- If a test cannot run, document the exact reason and do not substitute an assumed pass result.
+- Keep secrets and customer data out of prompts, errors, and generated artifacts.

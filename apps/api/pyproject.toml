@@ -2,10 +2,11 @@
 name = "zar-horizon-api"
 version = "0.1.0"
 description = "Shared platform API for ZAR HORIZON AI @WORK"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.15,<2",
     "fastapi>=0.115,<1",
+    "httpx>=0.28,<1",
     "pydantic-settings>=2.8,<3",
     "psycopg[binary]>=3.2,<4",
     "sqlalchemy>=2.0,<3",

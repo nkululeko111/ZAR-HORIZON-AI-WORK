@@ -1,0 +1,12 @@
+---
+description: Business Partner product boundaries
+globs: ["agents/business-partner/**/*.py", "docs/products/**/*.md", "docs/use-cases/business-partner/**/*.md"]
+---
+
+# Business Partner rules
+
+- Keep all Business Partner development within its own product permissions and data domain.
+- Do not inherit offensive security tools, exploit primitives, or Hacker execution capabilities.
+- Financial and operational calculations must be deterministic, reviewable, and auditable.
+- Recommendations must distinguish verified facts, estimates, and assumptions.
+- External actions must follow the approved approval policy and exact action scoping.

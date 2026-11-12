@@ -2,7 +2,7 @@
 name = "zar-horizon-hacker"
 version = "0.1.0"
 description = "Isolated AI Hacker service boundary with no security tooling enabled"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12"
 dependencies = ["pydantic-settings>=2.8,<3"]
 
 [build-system]

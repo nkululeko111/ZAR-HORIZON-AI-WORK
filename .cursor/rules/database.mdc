@@ -1,0 +1,12 @@
+---
+description: Database and tenant boundaries
+globs: ["apps/api/**/*.py", "docs/database/**/*.md", "**/*.sql"]
+---
+
+# Database rules
+
+- Use `docs/database/` and the architecture docs as the baseline for tenant, workspace, and product boundaries.
+- Do not create or modify database models or migrations outside an explicitly approved design change.
+- Keep product separation and tenant isolation as backend-enforced controls.
+- Do not treat the frontend as a trust boundary for access, permissions, or data protection.
+- Keep approval, evidence, and audit requirements aligned with the current design set.

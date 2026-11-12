@@ -7,6 +7,7 @@ const products = [
       'A capable partner for the work of starting, running and growing a business — from research and planning to day-to-day operations.',
     detail: 'For founders and ambitious teams',
     className: 'business',
+    href: '/business-partner',
   },
   {
     number: '02',
@@ -16,6 +17,7 @@ const products = [
       'A future red-team platform designed to help authorised teams assess their systems, understand risk and verify remediation.',
     detail: 'For authorised security testing',
     className: 'security',
+    href: undefined,
   },
 ];
 
@@ -97,10 +99,16 @@ export default function Home() {
               <h3>{product.name}</h3>
               <p>{product.description}</p>
               <div className="card-footer">
-                <span>{product.detail}</span>
-                <span className="arrow" aria-hidden="true">
-                  ↗
-                </span>
+                {product.href ? (
+                  <a className="card-action" href={product.href}>
+                    {product.detail}<span className="arrow" aria-hidden="true">↗</span>
+                  </a>
+                ) : (
+                  <>
+                    <span>{product.detail}</span>
+                    <span className="arrow" aria-hidden="true">↗</span>
+                  </>
+                )}
               </div>
             </article>
           ))}

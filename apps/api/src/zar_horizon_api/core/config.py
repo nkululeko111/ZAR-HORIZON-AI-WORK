@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,6 +10,10 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     log_level: str = "INFO"
     database_url: str = "postgresql+psycopg://localhost/zar_horizon"
+    business_partner_local_mode: bool = False
+    ai_api_key: SecretStr | None = None
+    ai_chat_completions_url: str | None = None
+    ai_model: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

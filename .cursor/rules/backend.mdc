@@ -1,0 +1,13 @@
+---
+description: Backend implementation rules
+globs: ["apps/api/**/*.py", "agents/**/*.py"]
+---
+
+# Backend rules
+
+- Respect the FastAPI backend design and API contract baseline in `docs/api/`.
+- Do not invent routes, schemas, or integrations unless they are explicitly approved and documented.
+- Keep Python code readable, typed where practical, and aligned with the project standards.
+- Treat evidence, permissions, workspace and tenant enforcement as backend responsibilities.
+- Do not allow Business Partner and AI Hacker logic to share or inherit unsafe execution privileges.
+- Before a backend change with security or approval implications, inspect the architecture and API design docs.

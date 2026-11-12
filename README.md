@@ -42,8 +42,14 @@ packages/                 Reserved for shared JavaScript packages
 - Python 3.12 and uv.
 - Docker with Docker Compose v2 (for the full local stack).
 
-Python 3.12 is the supported development baseline. Create the local Python environment with uv;
-the `.python-version` file selects the intended version.
+Python 3.12 remains the default development baseline. The workspace metadata now permits Python
+3.14 for compatibility testing, but that target is still provisional until the upstream runtime and
+framework dependency set is fully validated. Create the local Python environment with uv; the
+`.python-version` file selects the intended default version for local development.
+
+## Development documentation
+
+The repository includes a development foundation package in [docs/development](docs/development/), covering repository strategy, Git workflow, environment configuration, Docker usage, onboarding, CI, and security hygiene.
 
 ## Local setup
 

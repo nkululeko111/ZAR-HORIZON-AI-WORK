@@ -1,0 +1,17 @@
+---
+description: Global repository rules for all edits
+alwaysApply: true
+---
+
+# Global repository rules
+
+- Read the relevant design and architecture documents before modifying anything in this repository.
+- Treat `docs/products`, `docs/architecture`, `docs/database`, `docs/api`, `docs/ux`, and `docs/development` as the approved baseline.
+- Keep the monorepo structure and product separation intact. Shared platform code is not shared authority.
+- Do not invent product requirements, integrations, API contracts, or database entities.
+- Keep changes narrow, reviewable, and testable.
+- Never overwrite unrelated user work or delete files without explicit approval.
+- Avoid destructive Git operations and never commit, push, merge, or deploy without authorisation.
+- Never expose credentials, tokens, customer data, or secrets in prompts, code, logs, or generated files.
+- Do not claim tests or builds passed unless they were actually run and verified.
+- If a request conflicts with the approved architecture or product boundaries, stop and ask for clarification.

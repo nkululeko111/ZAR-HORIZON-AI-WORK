@@ -1,0 +1,13 @@
+---
+description: AI Hacker product boundaries
+globs: ["agents/hacker/**/*.py", "docs/products/**/*.md", "docs/use-cases/ai-hacker/**/*.md"]
+---
+
+# AI Hacker rules
+
+- Keep AI Hacker execution inside its own security domain and authorisation model.
+- Require explicit scope and approval for any material action.
+- Never grant unrestricted network, shell, or exploitation access.
+- Use controlled execution, evidence capture, and reviewable output.
+- Do not inherit Business Partner financial or commercial permissions.
+- Keep testing and reporting within the approved security-use lifecycle.
